@@ -9,8 +9,7 @@ import org.mapstruct.Mapping;
 @Mapper(componentModel = "spring")
 public interface CommentMapper {
 
-    @Mapping(source = "author.name",       target = "authorName")
-    @Mapping(source = "author.avatarUrl", target = "authorAvatarUrl")
+    @Mapping(source = "author.name", target = "authorName")
     CommentDTO toDto(Comment comment);
 
     @Mapping(target = "id",         ignore = true)

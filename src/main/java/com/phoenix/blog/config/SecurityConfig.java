@@ -11,6 +11,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.web.cors.CorsConfigurationSource;
 
 import java.io.IOException;
 
@@ -20,16 +21,17 @@ public class SecurityConfig {
 
     private final JwtService jwtService;
 
+    private final CorsConfigurationSource corsConfigurationSource;
+
     @Bean
-    SecurityFilterChain filter(HttpSecurity http) throws Exception {
-        return http
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        http.cors(cors -> cors.configurationSource(corsConfigurationSource))
                 .csrf(csrf -> csrf.disable())
-                .authorizeHttpRequests(req -> req
-                        .requestMatchers("/api/public/**", "/actuator/**").permitAll()
-                        .anyRequest().authenticated())
-                .oauth2Login(o -> o
-                        .successHandler(this::successHandler))
-                .build();
+                .authorizeHttpRequests(auth ->
+                        auth.requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/api/public/**").permitAll()
+                                .anyRequest().authenticated())
+                .oauth2Login(oauth2 -> oauth2.successHandler(this::successHandler));
+        return http.build();
     }
 
     private void successHandler(HttpServletRequest req, HttpServletResponse res,
@@ -38,7 +40,7 @@ public class SecurityConfig {
         JwtPair pair = jwtService.issueTokens(auth);
         CookieUtil.send(pair, res);
 
-        res.sendRedirect("http://localhost:5173");  // back to React
+        res.sendRedirect("http://localhost:5173");
     }
 
 }
